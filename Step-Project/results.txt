@@ -1,0 +1,139 @@
+Using the existing coffee ratings dataset at /Users/liubomyrhuzhumit/Desktop/Data-Science-Course/Step-Project/coffee_ratings.csv.
+Validated dataset: 1339 rows by 43 columns.
+The one zero-score record is treated as suspect and excluded from score analyses; its cause is unverified.
+
+Task 1: Bags represented by rated samples
+The zero-score record remains in this task: Honduras, 275 bags.
+Rows missing country: 1; rows missing bag count: 0. Country totals sum available bag counts.
+Top ten countries by bags recorded for rated samples:
+country_of_origin
+Colombia       41204
+Guatemala      36868
+Brazil         30534
+Mexico         24140
+Honduras       13167
+Ethiopia       11761
+Costa Rica     10354
+Nicaragua       6406
+Uganda          5477
+El Salvador     4449
+Saved chart: 01_bags_by_country.png
+Score-analysis dataset: 1338 rows; only the suspect zero-score record is excluded. Each task handles missing values separately.
+
+Task 2: Pearson correlations between coffee scores
+Samples used for each score measure:
+                  valid_samples  missing_samples
+aroma                      1338                0
+flavor                     1338                0
+aftertaste                 1338                0
+acidity                    1338                0
+body                       1338                0
+balance                    1338                0
+uniformity                 1338                0
+clean_cup                  1338                0
+sweetness                  1338                0
+cupper_points              1338                0
+total_cup_points           1338                0
+Saved chart: 02_all_score_correlations.png
+Distinct score pairs with Pearson r >= 0.65:
+  flavor and aftertaste: r=0.8595, n=1338
+  flavor and total_cup_points: r=0.8267, n=1338
+  aftertaste and total_cup_points: r=0.8125, n=1338
+  balance and total_cup_points: r=0.7630, n=1338
+  flavor and acidity: r=0.7459, n=1338
+  aftertaste and balance: r=0.7456, n=1338
+  cupper_points and total_cup_points: r=0.7408, n=1338
+  aroma and flavor: r=0.7403, n=1338
+  flavor and cupper_points: r=0.7378, n=1338
+  aftertaste and cupper_points: r=0.7283, n=1338
+  flavor and balance: r=0.7196, n=1338
+  aftertaste and acidity: r=0.7160, n=1338
+  acidity and total_cup_points: r=0.6967, n=1338
+  aroma and aftertaste: r=0.6943, n=1338
+  aroma and total_cup_points: r=0.6858, n=1338
+  body and balance: r=0.6654, n=1338
+Saved chart: 03_selected_score_correlations.png
+
+Task 3: Mean coffee score by species and bean color
+Rows excluded for missing task fields: 270 of 1338.
+Missing values by field:
+species               0
+color               270
+total_cup_points      0
+Mean scores by species and bean color:
+color    Blue-Green  Bluish-Green  Green
+species                                 
+Arabica       82.71         82.65  81.99
+Robusta       79.36         81.34  81.46
+Sample counts by species and bean color:
+color    Blue-Green  Bluish-Green  Green
+species                                 
+Arabica          82           112    849
+Robusta           3             2     20
+  Arabica, Blue-Green: mean=82.71, n=82
+  Arabica, Bluish-Green: mean=82.65, n=112
+  Arabica, Green: mean=81.99, n=849
+  Robusta, Blue-Green: mean=79.36, n=3
+  Robusta, Bluish-Green: mean=81.34, n=2
+  Robusta, Green: mean=81.46, n=20
+Saved chart: 04_scores_by_bean_color.png
+
+Task 4: Coffee score by country of origin
+Rows excluded for missing task fields: 1 of 1338.
+Missing values by field:
+country_of_origin    1
+total_cup_points     0
+Mean score and valid sample count for every country:
+                               mean  count
+country_of_origin                         
+Papua New Guinea              85.75      1
+Ethiopia                      85.48     44
+Japan                         84.67      1
+United States                 84.43     10
+Kenya                         84.31     25
+Panama                        83.71      4
+Uganda                        83.45     36
+Colombia                      83.11    183
+El Salvador                   83.05     21
+China                         82.93     16
+Rwanda                        82.83      1
+Costa Rica                    82.79     51
+Thailand                      82.57     32
+Indonesia                     82.57     20
+Peru                          82.53     10
+Brazil                        82.41    132
+Tanzania, United Republic Of  82.37     40
+Taiwan                        82.00     75
+Zambia                        81.92      1
+Guatemala                     81.85    181
+Laos                          81.83      3
+Burundi                       81.83      2
+United States (Hawaii)        81.82     73
+United States (Puerto Rico)   81.73      4
+Malawi                        81.71     11
+Vietnam                       81.21      8
+India                         81.08     14
+Mexico                        80.89    236
+Honduras                      80.88     52
+Philippines                   80.83      5
+Myanmar                       80.75      8
+Mauritius                     80.50      1
+Nicaragua                     80.46     26
+Ecuador                       80.22      3
+Cote d?Ivoire                 79.33      1
+Haiti                         77.18      6
+The country chart and test include 21 countries with at least 10 valid samples each.
+Country names have no meaningful numerical order, so Spearman correlation is not applicable.
+Kruskal-Wallis compares score distributions across the countries shown; it does not prove causation or identify which individual countries differ.
+Kruskal-Wallis test: H=266.021087, p=6.60152e-45.
+Saved chart: 05_scores_by_country.png
+
+Task 5: Altitude and coffee score
+Missing altitude: 230; missing score: 0; rows removed for either missing field: 230.
+Altitude cleaning range: 0 to 3,000 meters inclusive; additional records removed: 16.
+This altitude range is an analysis choice and does not verify the original altitude values.
+Samples remaining for altitude analysis: 1092.
+Spearman association: rho=0.275940, p=1.55672e-20; this describes association, not causation.
+Saved chart: 06_altitude_and_score.png
+Verified that all six required charts are nonempty, readable PNG files.
+All five tasks completed. Charts are saved in /Users/liubomyrhuzhumit/Desktop/Data-Science-Course/Step-Project/charts.

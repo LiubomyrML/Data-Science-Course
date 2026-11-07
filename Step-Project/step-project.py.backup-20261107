@@ -1,0 +1,108 @@
+    correlations = scores[ASSESSMENTS].corr(method='pearson')
+    figure, axis = plt.subplots(figsize=(13, 10))
+    sns.heatmap(correlations, annot=True, fmt='.2f', vmin=-1, vmax=1,
+                cmap='vlag', square=True, ax=axis)
+    axis.set_title('All coffee assessments: Pearson correlations (valid scores)')
+    save_chart(figure, '02_all_score_correlations.png')
+    eligible = [c for c in ASSESSMENTS if c not in {'sweetness', 'uniformity', 'clean_cup'}]
+    pairs = [(a, b, correlations.loc[a, b])
+             for i, a in enumerate(eligible) for b in eligible[i + 1:]
+             if correlations.loc[a, b] >= 0.65]
+    print('Distinct qualifying pairs (r >= 0.65):')
+    for first, second, coefficient in pairs:
+        print(f'  {first} / {second}: r={coefficient:.4f}')
+    measures = [c for c in eligible if any(c in (a, b) for a, b, _ in pairs)]
+    if not measures:
+        raise ValueError('No measures qualify for the selected heatmap.')
+    figure, axis = plt.subplots(figsize=(11, 9))
+    sns.heatmap(correlations.loc[measures, measures], annot=True, fmt='.2f',
+                vmin=-1, vmax=1, cmap='vlag', square=True, ax=axis)
+    axis.set_title('Measures in pairs with Pearson r ≥ 0.65\nOther displayed pairs may have r < 0.65')
+    save_chart(figure, '03_selected_score_correlations.png')
+
+
+def scores_by_color(scores):
+    print('\nTask 3 — Mean score by species and bean colour')
+    subset = scores.dropna(subset=['species', 'color', 'total_cup_points'])
+    print(f'Excluded {len(scores) - len(subset)} rows missing task fields.')
+    means = subset.pivot_table(index='species', columns='color', values='total_cup_points', aggfunc='mean')
+    counts = subset.pivot_table(index='species', columns='color', values='total_cup_points', aggfunc='count', fill_value=0)
+    print('Mean scores:\n' + means.to_string())
+    print('Sample counts:\n' + counts.to_string())
+    figure, axis = plt.subplots(figsize=(11, 7))
+    means.plot.bar(ax=axis, color=sns.color_palette('Set2', n_colors=len(means.columns)), rot=0)
+    axis.set(title='Mean coffee score by species and bean colour',
+             xlabel='Species', ylabel='Mean total cup points')
+    axis.legend(title='Bean colour')
+    save_chart(figure, '04_scores_by_bean_color.png')
+
+
+def scores_by_country(scores):
+    print('\nTask 4 — Country of origin and coffee score')
+    subset = scores.dropna(subset=['country_of_origin', 'total_cup_points'])
+    print(f'Excluded {len(scores) - len(subset)} rows missing task fields.')
+    summary = subset.groupby('country_of_origin').total_cup_points.agg(['mean', 'count'])
+    print(summary.sort_values('mean', ascending=False).to_string())
+    shown = summary.loc[summary['count'] >= 10].sort_values('mean')
+    print(f'Chart and test use {len(shown)} countries with at least 10 valid samples each.')
+    print('Country names have no natural order, so Spearman correlation is not meaningful.')
+    print('Kruskal–Wallis is used instead to compare score distributions across the countries shown.')
+    groups = [subset.loc[subset.country_of_origin.eq(country), 'total_cup_points'] for country in shown.index]
+    statistic, pvalue = kruskal(*groups)
+    print(f'Kruskal–Wallis: H={statistic:.6f}, p={pvalue:.6g}.')
+    print('This does not establish causation or identify individual country differences.')
+    figure, axis = plt.subplots(figsize=(12, 10))
+    shown['mean'].plot.barh(ax=axis, color='teal')
+    axis.set(title='Mean coffee score by country (minimum 10 valid samples)',
+             xlabel='Mean total cup points', ylabel='Country of origin')
+    for position, (_, row) in enumerate(shown.iterrows()):
+        axis.text(row['mean'] + 0.15, position, f"n={int(row['count'])}", va='center', fontsize=8)
+    axis.set_xlim(0, shown['mean'].max() + 9)
+    save_chart(figure, '05_scores_by_country.png')
+
+
+def altitude_and_score(scores):
+    print('\nTask 5 — Altitude and coffee score')
+    available = scores.dropna(subset=['altitude_mean_meters', 'total_cup_points'])
+    print(f'Dropped {len(scores) - len(available)} rows with missing altitude or score.')
+    subset = available.loc[available.altitude_mean_meters.between(0, 3000)]
+    print(f'Chosen altitude range: 0–3,000 m inclusive; removes {len(available) - len(subset)} additional rows.')
+    print('This is a plausible analysis range, not verification of original altitude values.')
+    result = spearmanr(subset.altitude_mean_meters, subset.total_cup_points)
+    print(f'Retained {len(subset)} samples; Spearman rho={result.statistic:.6f}, p={result.pvalue:.6g}.')
+    print('This describes an association between altitude and score, not a causal effect.')
+    figure, axes = plt.subplots(1, 2, figsize=(15, 6))
+    sns.kdeplot(data=subset, x='altitude_mean_meters', y='total_cup_points',
+                fill=True, cmap='Blues', levels=12, ax=axes[0], cut=0)
+    axes[0].set_title('Altitude and score: kernel density estimate')
+    density = axes[1].hexbin(subset.altitude_mean_meters, subset.total_cup_points,
+                             gridsize=35, mincnt=1, cmap='viridis')
+    figure.colorbar(density, ax=axes[1], label='Rated samples per hexagon')
+    axes[1].set_title('Altitude and score: sample counts')
+    for axis in axes:
+        for altitude in (500, 2000):
+            axis.axvline(altitude, color='darkorange', linestyle='--', linewidth=1)
+        for score in (80, 85):
+            axis.axhline(score, color='firebrick', linestyle='--', linewidth=1)
+        axis.set(xlabel='Mean altitude (m)', ylabel='Total cup points')
+    save_chart(figure, '06_altitude_and_score.png')
+
+
+def main():
+    sns.set_theme(style='whitegrid')
+    CHARTS.mkdir(exist_ok=True)
+    data = load_data()
+    bags_by_country(data)
+    suspect = data.total_cup_points.eq(0)
+    print(f'\nExcluded {suspect.sum()} zero-score record(s) from score analyses as suspect; cause unverified.')
+    scores = data.loc[data.total_cup_points.gt(0)].copy()
+    print(f'Valid-score dataset: {len(scores)} rows; each task handles its own missing fields.')
+    score_correlations(scores)
+    scores_by_color(scores)
+    scores_by_country(scores)
+    altitude_and_score(scores)
+    print('\nCompleted all five tasks and saved six charts.')
+
+
+if __name__ == '__main__':
+    main()
