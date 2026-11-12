@@ -1,5 +1,5 @@
 # from Lesson5 import lesson5_module
-from Lesson5.Lesson5_package.lesson5_module import concat_all_strings as con_func
+from Python.Lesson5.Lesson5_package.lesson5_module import concat_all_strings as con_func
 
 result = con_func('Hello', 'Liubomyr!')
 print(result)
@@ -24,11 +24,11 @@ for number in numbers:
 print(result)
 
 
-user_info1 = {"username": "admin", "password": "FgJY248N", "age": 41, "Hobbies": ["Swimming", "Diving"]}
+user_info1 = {"username": "student-one", "password": "demo-password", "age": 24, "Hobbies": ["Swimming", "Diving"]}
 user_info2 = {
-    "username": "9812646841",
-    "password": "Liubomyr2012",
-    "age": 67,
+    "username": "student-two",
+    "password": "demo-password",
+    "age": 27,
     "Hobbies": {
         "main-hobbies": "Soccer",
         "Other_hobbies": [
